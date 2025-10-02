@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}News Portal{% endblock %}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .header { background: #f4f4f4; padding: 20px; margin-bottom: 20px; }
+        .content { max-width: 800px; margin: 0 auto; }
+        .news-item { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; }
+        .news-title { color: #333; text-decoration: none; font-size: 1.2em; }
+        .pagination { margin-top: 20px; text-align: center; }
+        .step-links a { margin: 0 5px; padding: 5px 10px; border: 1px solid #ddd; text-decoration: none; color: #333; }
+        .step-links a:hover { background: #f4f4f4; }
+        .current { margin: 0 10px; font-weight: bold; }
+        .search-form { background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-control { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-secondary { background: #6c757d; color: white; margin-left: 10px; }
+        .header nav { margin-top: 10px; }
+        .header nav a { color: #007bff; text-decoration: none; margin: 0 10px; }
+        .header nav a:hover { text-decoration: underline; }
+        .messages { list-style: none; padding: 10px; margin: 10px 0; }
+        .messages li { padding: 10px; border-radius: 5px; margin: 5px 0; }
+        .messages .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .messages .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
+        .alert-danger { color: #a94442; background-color: #f2dede; border-color: #ebccd1; }
+        .error { color: red; font-size: 0.9em; margin-top: 5px; }
+
+    </style>
+</head>
+<body>
+    <div class="header">
+    <h1><a href="/news/" style="text-decoration: none; color: #333;">News Portal</a></h1>
+    <nav>
+    <a href="{% url 'news_list' %}">Все новости</a> |
+    <a href="{% url 'news_search' %}">Поиск</a> |
+
+    {% if user.is_authenticated %}
+        {% if not user.groups.all.0.name == 'authors' %}
+            <a href="{% url 'become_author' %}" style="color: green; font-weight: bold;">Стать автором</a> |
+        {% endif %}
+
+        <a href="{% url 'my_subscriptions' %}">Мои подписки</a> |
+        <a href="{% url 'news_create' %}">Добавить новость</a> |
+        <a href="{% url 'article_create' %}">Добавить статью</a> |
+        <span>Привет, {{ user.username }}!</span> |
+        <a href="{% url 'account_logout' %}">Выйти</a>
+    {% else %}
+        <a href="{% url 'account_login' %}">Войти</a> |
+        <a href="{% url 'account_signup' %}">Регистрация</a>
+    {% endif %}
+    </nav>
+    </div>
+
+    <div class="content">
+        {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>
+

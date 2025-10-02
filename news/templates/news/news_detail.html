@@ -1,0 +1,60 @@
+{% extends 'news/default.html' %}
+{% load custom_filters %}
+
+{% block title %}{{ post.title|censor }}{% endblock %}
+
+{% block content %}
+    <div class="news-detail">
+        <h2>{{ post.title|censor }}</h2>
+
+        <div class="news-meta">
+            <p><strong>Дата публикации:</strong> {{ post.created_at|date:"d.m.Y" }}</p>
+            <p><strong>Тип:</strong> {{ post.get_post_type_display }}</p>
+            <p><strong>Автор:</strong> {{ post.author.user.username }}</p>
+            <p><strong>Рейтинг:</strong> {{ post.rating }}</p>
+        </div>
+
+        <div class="news-content">
+            <h3>Текст:</h3>
+            <p>{{ post.text|linebreaks|censor }}</p>
+        </div>
+
+        <div class="news-categories">
+            <h3>Категории:</h3>
+            <ul>
+                {% for category in post.categories.all %}
+                    <li>
+                        {{ category.name }}
+                        {% if user.is_authenticated %}
+                            {% if user in category.subscribers.all %}
+                                <a href="{% url 'unsubscribe_category' category.id %}"
+                                style="color: #dc3545; margin-left: 10px; text-decoration: none;"
+                                title="Отписаться">
+                                    ✕ Отписаться
+                                </a>
+                            {% else %}
+                                <a href="{% url 'subscribe_category' category.id %}"
+                                style="color: #28a745; margin-left: 10px; text-decoration: none;"
+                                title="Подписаться">
+                                    + Подписаться
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </li>
+                {% empty %}
+                    <li>Без категории</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="actions" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+        {% if post.post_type == 'NW' %}
+            <a href="{% url 'news_edit' post.id %}" class="btn btn-primary">Редактировать</a>
+            <a href="{% url 'news_delete' post.id %}" class="btn btn-danger">Удалить</a>
+        {% else %}
+            <a href="{% url 'article_edit' post.id %}" class="btn btn-primary">Редактировать</a>
+            <a href="{% url 'article_delete' post.id %}" class="btn btn-danger">Удалить</a>
+        {% endif %}
+        </div>
+        <a href="{% url 'news_list' %}">← Назад к списку новостей</a>
+    </div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "news/default.html" %}
+
+{% block title %}Мои подписки{% endblock %}
+
+{% block content %}
+<div class="subscriptions-page">
+    <h2>Управление подписками</h2>
+    
+    <!-- Активные подписки -->
+    <div class="active-subscriptions" style="margin-bottom: 30px;">
+        <h3>Мои активные подписки</h3>
+        {% if subscribed_categories %}
+            <ul style="list-style: none; padding: 0;">
+                {% for category in subscribed_categories %}
+                <li style="background: #f8f9fa; padding: 10px 15px; margin: 5px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold;">{{ category.name }}</span>
+                    <a href="{% url 'unsubscribe_category' category.id %}" 
+                       style="background: #dc3545; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; font-size: 0.9em;">
+                        Отписаться
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p style="color: #6c757d;">Вы не подписаны ни на одну категорию.</p>
+        {% endif %}
+    </div>
+    
+    <!-- Все категории для подписки -->
+    <div class="all-categories">
+        <h3>Все категории</h3>
+        {% if all_categories %}
+            <ul style="list-style: none; padding: 0;">
+                {% for category in all_categories %}
+                <li style="background: #f8f9fa; padding: 10px 15px; margin: 5px 0; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>{{ category.name }}</span>
+                    {% if category in subscribed_categories %}
+                        <span style="color: #28a745; font-size: 0.9em;">✓ Подписан</span>
+                    {% else %}
+                        <a href="{% url 'subscribe_category' category.id %}" 
+                           style="background: #28a745; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; font-size: 0.9em;">
+                            Подписаться
+                        </a>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p style="color: #6c757d;">Категории пока не созданы.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

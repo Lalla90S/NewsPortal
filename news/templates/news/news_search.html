@@ -1,0 +1,75 @@
+{% extends 'news/default.html' %}
+{% load custom_filters %}
+
+{% block title %}Поиск новостей{% endblock %}
+
+{% block content %}
+    <h2>Поиск новостей</h2>
+    
+    <!-- Форма поиска -->
+    <div class="search-form">
+        <form method="get">
+            <div class="form-group">
+                <label for="id_title">Название содержит:</label>
+                {{ filter.form.title }}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_author__user__username">Имя автора содержит:</label>
+                {{ filter.form.author__user__username }}
+            </div>
+            
+            <div class="form-group">
+                <label for="id_created_after">Опубликовано после:</label>
+                {{ filter.form.created_after }}
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Найти</button>
+            <a href="{% url 'news_search' %}" class="btn btn-secondary">Сбросить</a>
+        </form>
+    </div>
+
+    <!-- Результаты поиска -->
+    <div class="search-results">
+        <h3>Результаты поиска ({{ page_obj.paginator.count }} найдено)</h3>
+        
+        {% if page_obj %}
+            {% for post in page_obj %}
+                <div class="news-item">
+                    <h4>
+                        <a href="{% url 'news_detail' post.id %}" class="news-title">
+                            {{ post.title|censor }}
+                        </a>
+                    </h4>
+                    <p><strong>Дата:</strong> {{ post.created_at|date:"d.m.Y H:i" }}</p>
+                    <p><strong>Автор:</strong> {{ post.author.user.username }}</p>
+                    <p>{{ post.text|truncatechars:100|censor }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>Ничего не найдено. Попробуйте изменить критерии поиска.</p>
+        {% endif %}
+    </div>
+
+    <!-- Пагинация -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">&laquo; первая</a>
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">предыдущая</a>
+            {% endif %}
+
+            <span class="current">
+                Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">следующая</a>
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">последняя &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+    {% endif %}
+{% endblock %}
+

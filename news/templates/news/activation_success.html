@@ -1,0 +1,33 @@
+{% extends "news/default.html" %}
+
+{% block title %}Активация успешна{% endblock %}
+
+{% block content %}
+<div class="activation-success" style="text-align: center; padding: 40px 20px;">
+    <div style="background: #d4edda; color: #155724; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+        <h2>🎉 Активация успешно завершена!</h2>
+    </div>
+    
+    <p style="font-size: 18px; margin-bottom: 20px;">
+        <strong>Здравствуйте, {{ user.username }}!</strong>
+    </p>
+    
+    <p>Ваш аккаунт успешно активирован. Теперь вы можете полноценно использовать все возможности News Portal.</p>
+    
+    <div style="margin: 30px 0;">
+        <a href="{% url 'news_list' %}" class="btn btn-primary" style="padding: 12px 25px; font-size: 16px;">
+            Перейти к новостям
+        </a>
+    </div>
+    
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 20px;">
+        <h3>Что вы можете делать:</h3>
+        <ul style="text-align: left; display: inline-block;">
+            <li>Читать новости и статьи</li>
+            <li>Подписываться на категории</li>
+            <li>Оставлять комментарии</li>
+            <li>Получать уведомления</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

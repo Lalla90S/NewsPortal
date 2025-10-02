@@ -1,0 +1,68 @@
+{% extends 'news/default.html' %}
+{% load custom_filters %}
+
+{% block title %}Все новости и статьи{% endblock %}
+
+{% block content %}
+    <h2>Все новости и статьи</h2>
+
+    {% if page_obj %}
+        {% for post in page_obj %}
+            <div class="news-item">
+                <h3>
+                    <a href="{% url 'news_detail' post.id %}" class="news-title">
+                        {{ post.title|censor }}
+                    </a>
+                </h3>
+
+            <div class="categories" style="margin: 10px 0;">
+                <strong>Категории:</strong>
+                {% for category in post.categories.all %}
+                    <span class="category-tag" style="background: #e9ecef; padding: 3px 8px; border-radius: 15px; margin: 0 5px; font-size: 0.9em;">
+                        {{ category.name }}
+                        {% if user.is_authenticated %}
+                            {% if user in category.subscribers.all %}
+                                <a href="{% url 'unsubscribe_category' category.id %}"
+                                style="color: #dc3545; margin-left: 5px; text-decoration: none;"
+                                title="Отписаться">✕</a>
+                            {% else %}
+                                <a href="{% url 'subscribe_category' category.id %}"
+                                style="color: #28a745; margin-left: 5px; text-decoration: none;"
+                                title="Подписаться">+</a>
+                            {% endif %}
+                        {% endif %}
+                    </span>
+                {% empty %}
+                    <span style="color: #6c757d;">Без категории</span>
+                {% endfor %}
+            </div>
+
+                <p><strong>Дата:</strong> {{ post.created_at|date:"d.m.Y H:i" }}</p>
+                <p><strong>Тип:</strong> {{ post.get_post_type_display }}</p>
+                <p><strong>Автор:</strong> {{ post.author.user.username }}</p>
+                <p>{{ post.text|truncatechars:100|censor }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Новостей пока нет.</p>
+    {% endif %}
+
+    <!-- Пагинация -->
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; первая</a>
+                <a href="?page={{ page_obj.previous_page_number }}">предыдущая</a>
+            {% endif %}
+
+            <span class="current">
+                Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">следующая</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">последняя &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+{% endblock %}
