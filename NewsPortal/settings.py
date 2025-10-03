@@ -43,6 +43,10 @@ INSTALLED_APPS = [
     'allauth',    # Allauth apps
     'allauth.account',
     'allauth.socialaccount',
+
+    # Планировщик задач
+    'django_apscheduler',
+
     #'allauth.socialaccount.providers.google'
     #'allauth.socialaccount.providers.yandex',
 ]
