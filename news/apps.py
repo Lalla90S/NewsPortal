@@ -12,3 +12,4 @@ class NewsConfig(AppConfig):
         """
         import news.signals
         print("Сигналы приложения news загружены")  # Для отладки
+

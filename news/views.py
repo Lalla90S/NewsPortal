@@ -11,6 +11,9 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from .utils import send_new_post_notifications
 from django.shortcuts import get_object_or_404
 from .models import Category
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 
 
@@ -75,11 +78,17 @@ class NewsCreate(LoginRequiredMixin, CreateView):
         author, created = Author.objects.get_or_create(user=user)
         post.author = author
 
-        return super().form_valid(form)
+        # Сохраняем пост
+        response = super().form_valid(form)
+
+        # ОТПРАВЛЯЕМ УВЕДОМЛЕНИЯ ПОДПИСЧИКАМ
+        from .utils import send_new_post_notifications
+        send_new_post_notifications(self.object.id)
+
+        return response
 
     def get_success_url(self):
         return reverse_lazy('news_detail', kwargs={'news_id': self.object.id})
-
 
 
 
@@ -126,11 +135,17 @@ class ArticleCreate(LoginRequiredMixin, CreateView):
         author, created = Author.objects.get_or_create(user=user)
         post.author = author
 
-        return super().form_valid(form)
+        # Сохраняем пост
+        response = super().form_valid(form)
+
+        # ОТПРАВЛЯЕМ УВЕДОМЛЕНИЯ ПОДПИСЧИКАМ
+        from .utils import send_new_post_notifications
+        send_new_post_notifications(self.object.id)
+
+        return response
 
     def get_success_url(self):
         return reverse_lazy('news_detail', kwargs={'news_id': self.object.id})
-
 
 
 class ArticleUpdate(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
@@ -220,3 +235,55 @@ def activation_success(request):
         'user': request.user
     })
 # Create your views here.
+@login_required
+def subscribe_category(request, category_id):
+    """
+    Подписка пользователя на категорию
+    """
+    category = get_object_or_404(Category, id=category_id)
+
+    # Проверяем, не подписан ли уже пользователь
+    if not category.subscribers.filter(id=request.user.id).exists():
+        category.subscribers.add(request.user)
+        messages.success(request, f'✅ Вы успешно подписались на категорию "{category.name}"')
+        print(f"✅ Пользователь {request.user.username} подписался на категорию {category.name}")
+    else:
+        messages.info(request, f'ℹ️ Вы уже подписаны на категорию "{category.name}"')
+
+    # Возвращаем на страницу подписок
+    return redirect('my_subscriptions')
+
+
+@login_required
+def unsubscribe_category(request, category_id):
+    """
+    Отписка пользователя от категории
+    """
+    category = get_object_or_404(Category, id=category_id)
+
+    # Проверяем, подписан ли пользователь
+    if category.subscribers.filter(id=request.user.id).exists():
+        category.subscribers.remove(request.user)
+        messages.success(request, f'✅ Вы отписались от категории "{category.name}"')
+        print(f"❌ Пользователь {request.user.username} отписался от категории {category.name}")
+    else:
+        messages.info(request, f'ℹ️ Вы не были подписаны на категорию "{category.name}"')
+
+    # Возвращаем на страницу подписок
+    return redirect('my_subscriptions')
+
+
+@login_required
+def my_subscriptions(request):
+    """
+    Страница с подписками пользователя
+    """
+    # Получаем категории, на которые подписан пользователь
+    subscribed_categories = request.user.subscribed_categories.all()
+    # Получаем все категории
+    all_categories = Category.objects.all()
+
+    return render(request, 'news/my_subscriptions.html', {
+        'subscribed_categories': subscribed_categories,
+        'all_categories': all_categories,
+    })

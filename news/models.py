@@ -37,6 +37,10 @@ class Category(models.Model):
         return self.name
 
 
+
+
+
+
 class CategorySubscriber(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -47,6 +51,10 @@ class CategorySubscriber(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.category.name}"
+
+
+
+
 
 
 class Post(models.Model):

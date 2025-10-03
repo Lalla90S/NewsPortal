@@ -31,6 +31,13 @@ urlpatterns = [
     path('my-subscriptions/', views.my_subscriptions, name='my_subscriptions'),
 
     path('activation-success/', views.activation_success, name='activation_success'),
+
+
+    path('category/<int:category_id>/subscribe/', views.subscribe_category, name='subscribe_category'),
+    path('category/<int:category_id>/unsubscribe/', views.unsubscribe_category, name='unsubscribe_category'),
+    path('my_subscriptions/', views.my_subscriptions, name='my_subscriptions'),
+
+
 ]
 
 
