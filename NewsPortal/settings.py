@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,6 +48,8 @@ INSTALLED_APPS = [
     # Планировщик задач
     'django_apscheduler',
 
+    'django_celery_results',
+
     #'allauth.socialaccount.providers.google'
     #'allauth.socialaccount.providers.yandex',
 ]
@@ -75,6 +78,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+
 ]
 
 ROOT_URLCONF = 'NewsPortal.urls'
@@ -89,6 +93,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'news.context_processors.categories',
             ],
         },
     },
@@ -147,6 +152,10 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
+# Кэширование статических файлов в продакшн
+if not DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
@@ -165,3 +174,43 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Для те�
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'newsportal@example.com'
 SERVER_EMAIL = 'newsportal@example.com'
+
+
+
+# Настройки кэширования
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',  # Используем базу 1 для кэша
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+# Время жизни кэша по умолчанию (в секундах)
+CACHE_TTL = 60 * 15  # 15 минут
+
+# Кэширование сессий (опционально)
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+
+
+# Настройки Celery
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'django-db'  # ← ИСПОЛЬЗУЕМ REDIS ВМЕСТО django-db
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Moscow'
+
+
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'send-weekly-digest': {
+        'task': 'news.tasks.send_weekly_digest',
+        'schedule': crontab(hour=8, minute=0, day_of_week=1),  # Понедельник 8:00
+    },
+}

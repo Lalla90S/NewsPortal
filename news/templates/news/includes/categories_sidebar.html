@@ -1,0 +1,29 @@
+{% load cache %}
+
+<div class="categories-sidebar" style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+    <h3>Категории</h3>
+    {% cache 3600 categories_list %}
+    <ul style="list-style: none; padding: 0;">
+        {% for category in categories %}
+        <li style="margin: 5px 0;">
+            <a href="#" style="color: #007bff; text-decoration: none;">
+                {{ category.name }}
+            </a>
+            {% if user.is_authenticated %}
+                {% if user in category.subscribers.all %}
+                    <a href="{% url 'unsubscribe_category' category.id %}"
+                       style="color: #dc3545; margin-left: 5px; text-decoration: none;"
+                       title="Отписаться">✕</a>
+                {% else %}
+                    <a href="{% url 'subscribe_category' category.id %}"
+                       style="color: #28a745; margin-left: 5px; text-decoration: none;"
+                       title="Подписаться">+</a>
+                {% endif %}
+            {% endif %}
+        </li>
+        {% empty %}
+        <li style="color: #6c757d;">Категории пока не созданы</li>
+        {% endfor %}
+    </ul>
+    {% endcache %}
+</div>

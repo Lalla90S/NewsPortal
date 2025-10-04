@@ -8,15 +8,17 @@ from .forms import PostForm
 from .models import Post, Author
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from .utils import send_new_post_notifications
 from django.shortcuts import get_object_or_404
 from .models import Category
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.views.decorators.cache import cache_page
 
 
 
+
+@cache_page(60 * 5)  # Кэшируем на 5 минут
 def news_list(request):
     # Получаем все новости и статьи, отсортированные от новых к старым
     posts_list = Post.objects.all().order_by('-created_at')
@@ -29,6 +31,7 @@ def news_list(request):
     return render(request, 'news/news_list.html', {'page_obj': page_obj})
 
 
+@cache_page(60 * 15)  # Кэшируем на 15 минут (статьи редко меняются)
 def news_detail(request, news_id):
     # Получаем конкретную новость/статью по ID или показываем 404
     post = get_object_or_404(Post, id=news_id)
@@ -38,6 +41,7 @@ def news_detail(request, news_id):
 from django.shortcuts import render
 
 
+@cache_page(60 * 2)  # Кэшируем на 2 минуты (поиск часто меняется)
 def news_search(request):
     # Получаем все новости
     posts_list = Post.objects.all().order_by('-created_at')
@@ -54,6 +58,7 @@ def news_search(request):
         'filter': post_filter,
         'page_obj': page_obj
     })
+
 
 
 # Представления для новостей
@@ -81,9 +86,9 @@ class NewsCreate(LoginRequiredMixin, CreateView):
         # Сохраняем пост
         response = super().form_valid(form)
 
-        # ОТПРАВЛЯЕМ УВЕДОМЛЕНИЯ ПОДПИСЧИКАМ
-        from .utils import send_new_post_notifications
-        send_new_post_notifications(self.object.id)
+        # ОТПРАВЛЯЕМ УВЕДОМЛЕНИЯ ПОДПИСЧИКАМ ЧЕРЕЗ CELERY
+        from .tasks import send_new_post_notification
+        send_new_post_notification.delay(self.object.id)
 
         return response
 
@@ -138,9 +143,9 @@ class ArticleCreate(LoginRequiredMixin, CreateView):
         # Сохраняем пост
         response = super().form_valid(form)
 
-        # ОТПРАВЛЯЕМ УВЕДОМЛЕНИЯ ПОДПИСЧИКАМ
-        from .utils import send_new_post_notifications
-        send_new_post_notifications(self.object.id)
+        # ОТПРАВЛЯЕМ УВЕДОМЛЕНИЯ ПОДПИСЧИКАМ ЧЕРЕЗ CELERY
+        from .tasks import send_new_post_notification
+        send_new_post_notification.delay(self.object.id)
 
         return response
 

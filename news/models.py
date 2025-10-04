@@ -36,7 +36,27 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        """
+        Переопределяем save для сброса кэша при изменении категории
+        """
+        from django.core.cache import cache
+        # Сбрасываем кэш категорий
+        cache.delete('all_categories_list')
+        cache.delete_pattern('*categories_list*')  # Сбрасываем все ключи с categories_list
+        print("Кэш категорий сброшен при сохранении")
+        super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        """
+        Переопределяем delete для сброса кэша при удалении категории
+        """
+        from django.core.cache import cache
+        # Сбрасываем кэш категорий
+        cache.delete('all_categories_list')
+        cache.delete_pattern('*categories_list*')  # Сбрасываем все ключи с categories_list
+        print("Кэш категорий сброшен при удалении")
+        super().delete(*args, **kwargs)
 
 
 

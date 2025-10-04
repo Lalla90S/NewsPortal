@@ -1,3 +1,6 @@
+{% load cache %}
+
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -41,6 +44,7 @@
     <a href="{% url 'news_list' %}">Все новости</a> |
     <a href="{% url 'news_search' %}">Поиск</a> |
 
+    {% cache 3600 sidebar_categories %}  <!-- Кэшируем на 1 час -->
     {% if user.is_authenticated %}
         {% if not user.groups.all.0.name == 'authors' %}
             <a href="{% url 'become_author' %}" style="color: green; font-weight: bold;">Стать автором</a> |
@@ -55,8 +59,12 @@
         <a href="{% url 'account_login' %}">Войти</a> |
         <a href="{% url 'account_signup' %}">Регистрация</a>
     {% endif %}
+    {% endcache %}  <!-- ← ДОБАВЬ ЭТУ СТРОКУ! -->
     </nav>
     </div>
+
+    <!-- Добавляем боковую панель с категориями -->
+    {% include 'news/includes/categories_sidebar.html' %}
 
     <div class="content">
         {% if messages %}
@@ -71,4 +79,3 @@
     </div>
 </body>
 </html>
-
